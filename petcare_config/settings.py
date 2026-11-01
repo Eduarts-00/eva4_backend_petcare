@@ -29,6 +29,11 @@ if os.environ.get('EC2_PUBLIC_IP'):
         f"http://{os.environ['EC2_PUBLIC_IP']}",
         f"https://{os.environ['EC2_PUBLIC_IP']}",
     ])
+if os.environ.get('EC2_DOMAIN'):
+    CSRF_TRUSTED_ORIGINS.extend([
+        f"http://{os.environ['EC2_DOMAIN']}",
+        f"https://{os.environ['EC2_DOMAIN']}",
+    ])
 
 INSTALLED_APPS = [
     'django.contrib.admin',

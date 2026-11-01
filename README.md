@@ -6,11 +6,12 @@
 
 ---
 
-## 🌐 Despliegue en AWS EC2 (Producción)
+## 🌐 Despliegue en AWS EC2 + HTTPS (Producción)
 
-- **URL Aplicación Web Pública:** `http://98.85.49.169/`
-- **Panel Django Admin (Sesión Unificada):** `http://98.85.49.169/admin/`
-- **Documentación Swagger / OpenAPI:** `http://98.85.49.169/api/docs/`
+- **URL Principal Segura (HTTPS + Let's Encrypt):** `https://petcaree.duckdns.org/`
+- **Panel Django Admin (Sesión Unificada):** `https://petcaree.duckdns.org/admin/`
+- **Documentación Swagger / OpenAPI:** `https://petcaree.duckdns.org/api/docs/`
+- **IP Elástica AWS EC2 Directa:** `http://98.85.49.169/`
 
 ---
 
