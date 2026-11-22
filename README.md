@@ -1,29 +1,71 @@
-# 🐾 PetCare — Sistema de Gestión de Citas y Fichas Médicas para Veterinaria
+# 🐾 PetCare — Sistema Distribuido de Gestión Veterinaria (Evaluación N.º 4)
 
-**Asignatura:** Desarrollo Backend — Evaluación Parcial N°3  
+**Asignatura:** Programación Backend — Unidad 3: Aplicación API RESTful – Arquitectura AWS, Integración y Seguridad  
+**Evaluación:** Evaluación N.º 4 (Ponderación 30% / 100 puntos: 80 pts Práctica + 20 pts Defensa Oral)  
 **Docente:** Marcelo Alvarado Aravena  
 **Estudiante:** Angel Eduardo Lara Manriquez — Sección `IEC-N4-C2` (2026)  
+**Repositorio Evaluación 4:** `https://github.com/Eduarts-00/eva4_backend_petcare.git`  
+**Repositorio Base (Evaluación 3):** `https://github.com/Eduarts-00/eva3_petcare.git`  
 
 ---
 
-## 🌐 Despliegue en AWS EC2 + HTTPS (Producción)
+## 🌐 Enlaces de Producción y Arquitectura AWS
 
-- **URL Principal Segura (HTTPS + Let's Encrypt):** `https://petcaree.duckdns.org/`
-- **Panel Django Admin (Sesión Unificada):** `https://petcaree.duckdns.org/admin/`
-- **Documentación Swagger / OpenAPI:** `https://petcaree.duckdns.org/api/docs/`
-- **IP Elástica AWS EC2 Directa:** `http://98.85.49.169/`
+- **Portal Web Frontend / Backend Integrado (HTTPS):** `https://petcaree.duckdns.org/`
+- **Centro Interactivo AWS & Seguridad (EVA 4):** Botón **`🛡️ AWS & Seguridad (EVA 4)`** en la barra superior del portal.
+- **Panel Django Admin (Sesión Unificada RBAC):** `https://petcaree.duckdns.org/admin/`
+- **Documentación Interactiva OpenAPI / Swagger:** `https://petcaree.duckdns.org/api/docs/`
+- **Telemetría de Arquitectura AWS en Vivo (JSON):** `https://petcaree.duckdns.org/api/aws/estado/`
+- **Verificación Criptográfica PBKDF2 y Salt (JSON):** `https://petcaree.duckdns.org/api/auth/verificar-hash/`
+- **Generador de URLs Prefirmadas S3 SigV4 (JSON):** `https://petcaree.duckdns.org/api/aws/s3-presigned-url/`
+- **Endpoint de Prueba de Rate Limiting / Throttling:** `https://petcaree.duckdns.org/api/aws/rate-limit-test/`
 
 ---
 
-## 📌 Descripción del Proyecto
+## 🏗️ Arquitectura Obligatoria Implementada (Sección 3)
 
-**PetCare** resuelve los problemas críticos de solapamiento de citas médicas, extravío de fichas clínicas en papel y falta de seguimiento de vacunas mediante una aplicación web Fullstack construida sobre **Django 5 + Django REST Framework (DRF) + PostgreSQL**, desplegada en **AWS EC2** con **Gunicorn** y **Nginx**.
+| Componente | Implementación en PetCare EVA 4 | Evidencia / Ubicación en Código |
+| :--- | :--- | :--- |
+| **EC2 Frontend** | Interfaz Web SPA responsiva (`templates/index.html`) que consume la API vía JSON + JWT `Bearer` y soporta enrutamiento directo hacia Amazon API Gateway | `templates/index.html` |
+| **EC2 Backend** | Aplicación Django 5 + Django REST Framework servida con Gunicorn y Nginx | `petcare_config/`, `clinica/`, `users/` |
+| **RDS PostgreSQL** | Persistencia relacional separada (7 entidades), Security Group restringido a TCP `5432` desde EC2 Backend, cifrado KMS en reposo y TLS (`sslmode=require`) | `petcare_config/settings.py`, `/api/aws/estado/` |
+| **Amazon S3** | Bucket con `Block Public Access = ON`, cifrado en reposo `SSE-S3 (AES256)` y acceso controlado mediante **URLs Prefirmadas (`AWS4-HMAC-SHA256`)** | `clinica/views.py` (`S3PresignedUrlView`) |
+| **API Gateway** | Exposición de endpoints REST y control de *Rate Limiting / Throttling* (`Rate: 2 req/s, Burst: 5`), verificado con respuestas `200 OK` seguidas de `429 Too Many Requests` | `scripts/probar_rate_limit.py`, `/api/aws/rate-limit-test/` |
+| **CloudWatch + SNS** | Monitoreo de métricas (`CPUUtilization`, `NetworkIn/Out`, `StatusCheckFailed`) y alarma conectada a tópico de notificación por correo en **Amazon SNS** | `petcare_config/settings.py` (`LOGGING`), `INFORME_TECNICO_EVA4.md` |
+| **SonarQube (SAST)** | Análisis estático de código Python/Django y remediación de secretos en duro (`python:S2068`) mediante variables de entorno (`_get_env_secret`) | `sonar-project.properties`, `INFORME_TECNICO_EVA4.md` |
+| **OWASP ZAP (DAST)** | Análisis dinámico sobre la aplicación desplegada y endurecimiento de cabeceras HTTP (`CSP`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `HttpOnly`) | `petcare_config/middleware.py` (`SecurityHeadersAndCORSMiddleware`) |
+| **JWT + Criptografía** | Autenticación `Bearer` con `SimpleJWT` (`HS256`), autorización RBAC (`ADMIN`, `VETERINARIO`, `TUTOR`) y almacenamiento de contraseñas con `PBKDF2-HMAC-SHA256` + `Salt` aleatorio de 128 bits | `users/views.py` (`VerificarCriptografiaPasswordView`), `scripts/verificar_criptografia.py` |
+| **Respaldos RDS + Lambda 7h** | Respaldos automáticos de RDS, Snapshot manual y automatización exacta **cada 7 horas** mediante **Amazon EventBridge Scheduler (`rate(7 hours)`) + AWS Lambda + AWS SNS** | `aws_infra/lambda_rds_backup_7h.py` |
 
-### Funcionalidades Principales (4 Módulos del Caso)
-1. **CRUD de Tutores y Mascotas:** Registro relacional de propietarios y pacientes con búsqueda instantánea por RUT, nombre, raza o microchip.
-2. **Calendario y Agendamiento sin Solapamiento:** Consulta dinámica de bloques horarios disponibles por Médico Veterinario y validación atómica que impide cruces de horario tanto para el profesional como para la mascota.
-3. **Ficha Clínica Digital:** Registro estructurado de anamnesis, diagnóstico, tratamiento, receta médica, exámenes solicitados, temperatura y actualización automática del peso del paciente.
-4. **Recordatorios de Vacunación y Controles Periódicos:** Seguimiento con semáforo automático de alertas (`🔴 Vencido`, `🟡 Próximo ≤15 días`, `🟢 Al día`, `✅ Aplicado`).
+---
+
+## ⚡ Actualización Rápida en la Máquina Virtual AWS EC2
+
+Para actualizar la instancia EC2 existente de `eva3_petcare` con todos los componentes de la **Evaluación N.º 4**, ejecuta en la terminal de la máquina virtual Ubuntu:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/Eduarts-00/eva4_backend_petcare/main/deploy_aws.sh | sudo bash
+```
+
+---
+
+## 🧪 Scripts de Verificación para la Defensa Práctica
+
+### 1. Demostrar Rate Limiting / Throttling (`200 OK` -> `429 Too Many Requests`)
+```bash
+# Contra el endpoint de la aplicación o la Invoke URL de Amazon API Gateway:
+python scripts/probar_rate_limit.py https://petcaree.duckdns.org/api/aws/rate-limit-test/
+```
+
+### 2. Demostrar Hashing PBKDF2-HMAC-SHA256 y Unicidad del Salt Criptográfico
+```bash
+python scripts/verificar_criptografia.py
+```
+
+### 3. Ejecutar Suite Completa de Pruebas Automatizadas (EVA 3 + EVA 4)
+```bash
+python manage.py test
+```
 
 ---
 
@@ -38,60 +80,7 @@
 
 ---
 
-## 🛠️ Instrucciones de Ejecución Local
+## 📚 Documentación y Entregables de la Evaluación N.º 4
 
-### 1. Requisitos Previos
-- Python 3.11+
-- PostgreSQL 14+ ejecutándose en `localhost:5432`
-
-### 2. Instalación y Configuración
-```bash
-# 1. Crear y activar entorno virtual
-python -m venv venv
-# En Windows:
-venv\Scripts\activate
-# En Linux/Mac:
-source venv/bin/activate
-
-# 2. Instalar dependencias
-pip install -r requirements.txt
-
-# 3. Configurar variables de entorno (opcional, valores por defecto en settings.py)
-# DB_NAME=petcare_db | DB_USER=postgres | DB_PASSWORD=inacap.2030 | DB_HOST=localhost | DB_PORT=5432
-
-# 4. Aplicar migraciones en PostgreSQL
-python manage.py makemigrations
-python manage.py migrate
-
-# 5. Cargar datos iniciales de demostración
-python poblar_datos.py
-
-# 6. Iniciar servidor de desarrollo
-python manage.py runserver
-```
-
-Luego abrir en el navegador:
-- **Portal Web PetCare:** `http://127.0.0.1:8000/`
-- **Django Admin:** `http://127.0.0.1:8000/admin/`
-- **Swagger API:** `http://127.0.0.1:8000/api/docs/`
-
----
-
-## 📡 Principales Endpoints REST
-
-| Método | Ruta | Descripción |
-| :--- | :--- | :--- |
-| `POST` | `/api/auth/login/` | Inicia sesión (crea sesión Django + retorna JWT con rol) |
-| `GET` | `/api/dashboard/resumen/` | KPIs en tiempo real (pacientes, citas hoy, fichas, alertas) |
-| `GET/POST/PUT/DELETE` | `/api/tutores/` | CRUD completo de Tutores |
-| `GET/POST/PUT/DELETE` | `/api/mascotas/` | CRUD completo de Mascotas |
-| `GET` | `/api/profesionales/{id}/disponibilidad/?fecha=YYYY-MM-DD` | Bloques horarios libres/ocupados del veterinario |
-| `GET/POST/PUT/DELETE` | `/api/citas/` | Agendamiento con validación anti-solapamiento |
-| `GET/POST/PUT/DELETE` | `/api/fichas-clinicas/` | Gestión de Fichas Clínicas Digitales |
-| `GET/POST/PUT/DELETE` | `/api/recordatorios/` | Gestión de Vacunas y Controles Periódicos |
-| `GET` | `/api/recordatorios/alertas/` | Alertas vencidas o próximas (≤30 días) |
-
----
-
-## 🤖 Evidencia de Uso de IA
-Revisar el archivo [`prompts_ia.md`](./prompts_ia.md) incluido en la raíz de este repositorio.
+- **[`INFORME_TECNICO_EVA4.md`](./INFORME_TECNICO_EVA4.md):** Informe técnico integral con arquitectura AWS, SAST (SonarQube) vs DAST (OWASP ZAP), criptografía de contraseñas, API Gateway Rate Limiting, seguridad en RDS y S3, monitoreo en CloudWatch, respaldos cada 7 horas con EventBridge + Lambda y **Banco Completo de Respuestas para la Defensa Oral (Bloques A, B, C y D)**.
+- **[`prompts_ia.md`](./prompts_ia.md):** Evidencia de uso de IA con recomendaciones de seguridad contrastadas con documentación oficial (OWASP, Django Docs, AWS Well-Architected Framework) y justificación de aplicación/descarte.

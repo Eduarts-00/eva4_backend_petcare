@@ -1,12 +1,17 @@
 """
-Pruebas automatizadas del dominio PetCare (EVA 3).
+Pruebas automatizadas del dominio PetCare (EVA 3 + EVA 4: Arquitectura AWS, Integración y Seguridad).
 Valida:
 1. Bloqueo de solapamiento de citas médicas para un mismo veterinario.
 2. Actualización automática de peso y estado ATENDIDA al emitir Ficha Clínica.
 3. Cálculo del semáforo de alertas en Recordatorios de Vacunación.
-4. Seguridad y autenticación por rol en la API REST.
+4. Seguridad y autenticación por rol (JWT + RBAC) en la API REST.
+5. (EVA 4 - Actividad 2) Cabeceras de seguridad HTTP para cumplimiento DAST (OWASP ZAP).
+6. (EVA 4 - Actividad 3) Protección criptográfica de contraseñas (PBKDF2-HMAC-SHA256 y Salt único).
+7. (EVA 4 - Actividad 4) Rate Limiting / Throttling (respuestas 200 OK seguidas de 429 Too Many Requests).
+8. (EVA 4 - Actividades 5 y 6) Estado de Arquitectura AWS (RDS PostgreSQL + S3 Presigned URLs SigV4).
 """
 from datetime import time, timedelta
+from django.core.cache import cache
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -17,6 +22,7 @@ from .models import Profesional, Tutor, Mascota, CitaMedica, FichaClinica, Contr
 class PetCareDomainTests(TestCase):
 
     def setUp(self):
+        cache.clear()
         self.hoy = timezone.localdate()
         self.vet_user = CustomUser.objects.create_user(
             username='vet_test', password='password123', rol=CustomUser.Roles.VETERINARIO
@@ -181,3 +187,50 @@ class PetCareDomainTests(TestCase):
         }, format='json')
         self.assertEqual(r_denegado.status_code, 403)
         self.assertTrue(r_denegado.data.get('cuenta_bloqueada'))
+
+    def test_eva4_owasp_zap_dast_security_headers(self):
+        """Actividad 2 (DAST OWASP ZAP): Verifica cabeceras de endurecimiento HTTP."""
+        resp = self.client.get('/api/dashboard/resumen/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp['X-Content-Type-Options'], 'nosniff')
+        self.assertEqual(resp['X-Frame-Options'], 'DENY')
+        self.assertIn('Content-Security-Policy', resp)
+        self.assertEqual(resp['Referrer-Policy'], 'strict-origin-when-cross-origin')
+
+    def test_eva4_criptografia_hash_pbkdf2_y_salt_unico(self):
+        """Actividad 3: Verifica hashing PBKDF2-SHA256, ausencia de texto plano y unicidad de Salt."""
+        resp = self.client.get('/api/auth/verificar-hash/')
+        self.assertEqual(resp.status_code, 200)
+        reg = resp.data['registro_real_postgresql']
+        self.assertFalse(reg['almacenado_en_texto_plano'])
+        self.assertEqual(reg['desglose_criptografico']['algoritmo'], 'pbkdf2_sha256')
+        self.assertNotIn('password123', reg['desglose_criptografico']['hash_completo_bd'])
+
+        demo = resp.data['demostracion_salt_unico']
+        self.assertFalse(demo['hashes_identicos'])
+        self.assertNotEqual(demo['hash_ejecucion_1']['salt'], demo['hash_ejecucion_2']['salt'])
+        self.assertTrue(demo['verificacion_check_password_1'])
+        self.assertTrue(demo['verificacion_check_password_2'])
+
+    def test_eva4_rate_limiting_throttling_429(self):
+        """Actividad 4: Verifica que tras 5 solicitudes en ráfaga se retorne HTTP 429 Too Many Requests."""
+        self.client.post('/api/aws/rate-limit-reset/')
+        codigos = []
+        for _ in range(7):
+            r = self.client.get('/api/aws/rate-limit-test/')
+            codigos.append(r.status_code)
+        self.assertEqual(codigos[:5], [200, 200, 200, 200, 200])
+        self.assertIn(429, codigos[5:])
+
+    def test_eva4_arquitectura_aws_y_s3_presigned_url(self):
+        """Actividades 5 y 6: Verifica estado de RDS PostgreSQL y firma SigV4 de URLs prefirmadas S3."""
+        r_est = self.client.get('/api/aws/estado/')
+        self.assertEqual(r_est.status_code, 200)
+        self.assertIn('3_rds_postgresql', r_est.data['componentes_obligatorios'])
+        self.assertIn('4_amazon_s3', r_est.data['componentes_obligatorios'])
+
+        r_s3 = self.client.get('/api/aws/s3-presigned-url/?key=recetas/ficha_1.pdf&expires=900')
+        self.assertEqual(r_s3.status_code, 200)
+        self.assertTrue(r_s3.data['block_public_access'])
+        self.assertIn('X-Amz-Algorithm=AWS4-HMAC-SHA256', r_s3.data['presigned_url'])
+        self.assertIn('X-Amz-Signature=', r_s3.data['presigned_url'])

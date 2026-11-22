@@ -159,6 +159,11 @@
             </ul>
 
             <div class="ms-auto d-flex flex-wrap align-items-center gap-2">
+                <!-- Botón Centro de Evidencias y Seguridad AWS (Evaluación N.º 4) -->
+                <button class="btn btn-sm btn-info text-dark fw-bold shadow-sm" onclick="abrirPanelEva4AWS()">
+                    <i class="bi bi-shield-lock-fill me-1"></i> AWS & Seguridad (EVA 4)
+                </button>
+
                 <!-- Botones para visitantes / posibles tutores -->
                 <button class="btn btn-sm btn-outline-light fw-semibold guest-only" onclick="abrirModalAcceso('login')">
                     <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
@@ -1104,10 +1109,201 @@
     </div>
 </div>
 
+<!-- ==================== MODAL CENTRO DE EVIDENCIAS AWS Y SEGURIDAD (EVALUACIÓN N.º 4) ==================== -->
+<div class="modal fade" id="eva4AwsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0f172a 0%, #0f766e 100%);">
+                <div>
+                    <span class="badge bg-warning text-dark fw-bold mb-1">EVALUACIÓN N.º 4 — PROGRAMACIÓN BACKEND</span>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="bi bi-cloud-check-fill me-2"></i>Centro de Verificación en Vivo: Arquitectura AWS, Integración y Seguridad
+                    </h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <!-- Selector de Enrutamiento API Gateway / EC2 Backend -->
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body py-2">
+                        <div class="row g-2 align-items-center">
+                            <div class="col-md-4">
+                                <span class="small fw-bold text-dark"><i class="bi bi-diagram-3-fill text-primary me-1"></i>Endpoint Base API (EC2 / API Gateway):</span>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" id="input-api-base-url" class="form-control form-control-sm" placeholder="Vacío = Mismo origen (/api/...) o URL de Amazon API Gateway">
+                            </div>
+                            <div class="col-md-3 d-flex gap-1">
+                                <button class="btn btn-sm btn-primary fw-semibold w-100" onclick="guardarApiBaseUrl()">Aplicar URL</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="limpiarApiBaseUrl()">Local</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pestañas de las Actividades EVA 4 -->
+                <ul class="nav nav-pills mb-3 gap-2" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-eva4-arq" type="button">
+                            <i class="bi bi-hdd-network me-1"></i>1. Arquitectura & RDS PostgreSQL
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-eva4-ratelimit" type="button">
+                            <i class="bi bi-speedometer2 me-1"></i>2. API Gateway & Rate Limit (429)
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-eva4-s3" type="button">
+                            <i class="bi bi-bucket-fill me-1"></i>3. Amazon S3 & URLs Prefirmadas
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-eva4-crypto" type="button">
+                            <i class="bi bi-key-fill me-1"></i>4. Criptografía & Hash PBKDF2
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-eva4-secops" type="button">
+                            <i class="bi bi-shield-shaded me-1"></i>5. SAST/DAST, CloudWatch & Respaldo 7h
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <!-- TAB 1: ARQUITECTURA DISTRIBUIDA Y RDS POSTGRESQL -->
+                    <div class="tab-pane fade show active" id="tab-eva4-arq">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold mb-0 text-primary">Estado en Tiempo Real de los 9 Componentes Obligatorios y Persistencia RDS PostgreSQL</h6>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="cargarEstadoArquitecturaAWS()">
+                                        <i class="bi bi-arrow-clockwise"></i> Actualizar Telemetría
+                                    </button>
+                                </div>
+                                <div id="eva4-arq-content" class="small">Cargando telemetría de arquitectura...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: API GATEWAY & RATE LIMITING -->
+                    <div class="tab-pane fade" id="tab-eva4-ratelimit">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-primary mb-2">Actividad 4 — Demostración Funcional de Rate Limiting / Throttling (Umbral: 5 Solicitudes de Ráfaga)</h6>
+                                <p class="small text-muted mb-3">
+                                    Envía una ráfaga rápida de <strong>8 solicitudes consecutivas</strong> al endpoint protegido (<code>/api/aws/rate-limit-test/</code> o URL de Amazon API Gateway).
+                                    Las primeras 5 solicitudes responden <code>200 OK</code> y a partir de la 6.ª solicitud se aplica el bloqueo por exceso de tasa retornando <code>429 Too Many Requests</code>.
+                                </p>
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button class="btn btn-sm btn-danger fw-bold" onclick="ejecutarPruebaRateLimit(8)">
+                                        <i class="bi bi-lightning-charge-fill me-1"></i> Lanzar Ráfaga de 8 Solicitudes (Probar 429)
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-dark fw-semibold" onclick="reiniciarRateLimit()">
+                                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reiniciar Contador de Ráfaga
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered align-middle small mb-0">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th># Solicitud</th>
+                                                <th>Endpoint Consultado</th>
+                                                <th>Código HTTP</th>
+                                                <th>Latencia</th>
+                                                <th>Respuesta del Control de Throttling</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tabla-ratelimit-resultados">
+                                            <tr><td colspan="5" class="text-center text-muted py-3">Haz clic en "Lanzar Ráfaga de 8 Solicitudes" para observar el control aplicado.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: AMAZON S3 & PRESIGNED URLS -->
+                    <div class="tab-pane fade" id="tab-eva4-s3">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="fw-bold text-primary mb-2">Actividad 6 — Seguridad del Bucket Amazon S3 (SSE-S3, Block Public Access y URLs Prefirmadas)</h6>
+                                <p class="small text-muted mb-3">
+                                    El bucket mantiene <strong>Block Public Access = ON</strong> y cifrado en reposo <strong>SSE-S3 (AES-256)</strong>. Para que un médico o tutor descargue una receta médica o recurso protegido sin abrir el bucket al público, el backend firma temporalmente una URL con <code>AWS4-HMAC-SHA256</code>.
+                                </p>
+                                <div class="row g-2 align-items-end mb-3">
+                                    <div class="col-md-7">
+                                        <label class="form-label small fw-bold mb-1">Objeto / Archivo en Bucket S3:</label>
+                                        <input type="text" id="s3-object-key" class="form-control form-control-sm" value="recetas/receta_ficha_clinica_thor_2026.pdf">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label small fw-bold mb-1">Expiración (seg):</label>
+                                        <input type="number" id="s3-expires" class="form-control form-control-sm" value="900">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button class="btn btn-sm btn-success fw-bold w-100" onclick="generarUrlPrefirmadaS3()">
+                                            <i class="bi bi-file-earmark-lock2-fill me-1"></i> Generar Presigned URL
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="eva4-s3-result" class="small"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: CRIPTOGRAFÍA Y HASHING DE CONTRASEÑAS -->
+                    <div class="tab-pane fade" id="tab-eva4-crypto">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold text-primary mb-0">Actividad 3 — Verificación Criptográfica de Contraseñas en PostgreSQL (PBKDF2-HMAC-SHA256 + Salt)</h6>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="cargarEvidenciasCriptografia()">
+                                        <i class="bi bi-shield-check"></i> Verificar Hash en BD
+                                    </button>
+                                </div>
+                                <div id="eva4-crypto-content" class="small">Cargando análisis criptográfico...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: SAST, DAST, CLOUDWATCH Y RESPALDOS 7H -->
+                    <div class="tab-pane fade" id="tab-eva4-secops">
+                        <div class="row g-3 small">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold text-dark"><i class="bi bi-bug-fill text-danger me-1"></i>Actividad 2 — SAST (SonarQube) y DAST (OWASP ZAP)</h6>
+                                        <ul class="mb-0 ps-3">
+                                            <li class="mb-1"><strong>SonarQube (SAST - Caja Blanca):</strong> Analiza el código fuente Python/Django sin ejecutarlo. Hallazgo corregido: eliminación de credenciales en duro (<code>python:S2068</code>) mediante <code>_get_env_secret()</code> y variables de entorno.</li>
+                                            <li class="mb-1"><strong>OWASP ZAP (DAST - Caja Negra):</strong> Analiza la aplicación desplegada vía HTTP. Mitigación aplicada en <code>SecurityHeadersAndCORSMiddleware</code>: cabeceras <code>Content-Security-Policy</code>, <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>Referrer-Policy</code> y cookies <code>HttpOnly</code>.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold text-dark"><i class="bi bi-graph-up-arrow text-success me-1"></i>Actividades 7 y 8 — CloudWatch, SNS y Respaldos cada 7 Horas</h6>
+                                        <ul class="mb-0 ps-3">
+                                            <li class="mb-1"><strong>CloudWatch + SNS:</strong> Monitoreo de <code>CPUUtilization</code>, <code>NetworkIn/Out</code> y <code>StatusCheckFailed</code> con alarma que publica notificación por correo mediante tópico <strong>Amazon SNS</strong>.</li>
+                                            <li class="mb-1"><strong>Respaldos RDS + Periodicidad exacta cada 7 horas:</strong> RDS nativo ejecuta respaldos automáticos en una ventana diaria (24h). Para cumplir una periodicidad exacta de <strong>cada 7 horas</strong>, se implementó <code>aws_infra/lambda_rds_backup_7h.py</code> invocada por <strong>Amazon EventBridge Scheduler</strong> con expresión <code>rate(7 hours)</code>, generando el snapshot <code>create_db_snapshot</code> y alertando vía <strong>AWS SNS</strong>.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     let accessToken = localStorage.getItem('petcare_access');
     let currentUser = JSON.parse(localStorage.getItem('petcare_user') || 'null');
+    let apiBaseUrl = (localStorage.getItem('petcare_api_base_url') || '').replace(/\/+$/, '');
     let passwordUsadaEnLogin = '';
     let cacheTutores = [];
     let cacheMascotas = [];
@@ -1147,6 +1343,13 @@
         return '';
     }
 
+    function resolveApiUrl(url) {
+        if (apiBaseUrl && url.startsWith('/api/')) {
+            return apiBaseUrl + url;
+        }
+        return url;
+    }
+
     async function apiFetch(url, options = {}) {
         const headers = options.headers || {};
         headers['Content-Type'] = 'application/json';
@@ -1154,8 +1357,8 @@
         const csrf = getCookie('csrftoken');
         if (csrf) headers['X-CSRFToken'] = csrf;
         options.headers = headers;
-        options.credentials = 'same-origin';
-        return fetch(url, options);
+        options.credentials = apiBaseUrl ? 'omit' : 'same-origin';
+        return fetch(resolveApiUrl(url), options);
     }
 
     function abrirModalAcceso(tab = 'login') {
@@ -2075,6 +2278,179 @@
             notificar('Recordatorio eliminado.', 'info');
             await Promise.all([cargarRecordatorios(), cargarResumenKPI()]);
         }
+    }
+
+    // ==================== 5. CENTRO DE VERIFICACIÓN AWS Y SEGURIDAD (EVA 4) ====================
+    async function abrirPanelEva4AWS() {
+        document.getElementById('input-api-base-url').value = apiBaseUrl;
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('eva4AwsModal'));
+        modal.show();
+        await Promise.all([
+            cargarEstadoArquitecturaAWS(),
+            generarUrlPrefirmadaS3(),
+            cargarEvidenciasCriptografia()
+        ]);
+    }
+
+    function guardarApiBaseUrl() {
+        apiBaseUrl = document.getElementById('input-api-base-url').value.trim().replace(/\/+$/, '');
+        localStorage.setItem('petcare_api_base_url', apiBaseUrl);
+        notificar(apiBaseUrl ? `🌐 Enrutando llamadas API hacia: <code>${apiBaseUrl}</code>` : '🏠 Usando endpoint API del mismo origen.');
+        cargarEstadoArquitecturaAWS();
+    }
+
+    function limpiarApiBaseUrl() {
+        apiBaseUrl = '';
+        localStorage.removeItem('petcare_api_base_url');
+        document.getElementById('input-api-base-url').value = '';
+        notificar('🏠 Enrutamiento restaurado al origen local (/api/...).', 'info');
+        cargarEstadoArquitecturaAWS();
+    }
+
+    async function cargarEstadoArquitecturaAWS() {
+        const box = document.getElementById('eva4-arq-content');
+        try {
+            const res = await apiFetch('/api/aws/estado/');
+            if (!res.ok) {
+                box.innerHTML = `<div class="alert alert-danger mb-0">No se pudo consultar /api/aws/estado/ (HTTP ${res.status}).</div>`;
+                return;
+            }
+            const d = await res.json();
+            const c = d.componentes_obligatorios;
+            const rds = c['3_rds_postgresql'];
+            const s3 = c['4_amazon_s3'];
+            const gw = c['5_api_gateway'];
+            const cw = c['6_cloudwatch_y_respaldos'];
+            const sec = c['7_sast_dast_y_jwt'];
+
+            box.innerHTML = `
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-white border rounded h-100">
+                            <div class="fw-bold text-success mb-2"><i class="bi bi-database-fill-lock me-1"></i>Amazon RDS PostgreSQL (Persistencia Separada)</div>
+                            <div><strong>Motor:</strong> <code>${rds.version_motor}</code></div>
+                            <div><strong>Host Endpoint:</strong> <code>${rds.endpoint_host}:${rds.puerto}</code></div>
+                            <div><strong>Cifrado en Tránsito:</strong> <span class="badge bg-success">${rds.cifrado_en_transito_tls}</span></div>
+                            <div><strong>Cifrado en Reposo:</strong> ${rds.cifrado_en_reposo_kms}</div>
+                            <div><strong>Security Group:</strong> ${rds.security_group_regla}</div>
+                            <div class="mt-2 pt-2 border-top">
+                                <strong>Conteo en Vivo RDS:</strong>
+                                Tutores: <span class="badge bg-primary">${rds.registros_persistidos.tutores}</span>
+                                Mascotas: <span class="badge bg-primary">${rds.registros_persistidos.mascotas}</span>
+                                Citas: <span class="badge bg-primary">${rds.registros_persistidos.citas_medicas}</span>
+                                Fichas: <span class="badge bg-primary">${rds.registros_persistidos.fichas_clinicas}</span>
+                                Vacunas: <span class="badge bg-primary">${rds.registros_persistidos.controles_vacunas}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-white border rounded h-100">
+                            <div class="fw-bold text-primary mb-2"><i class="bi bi-cloud-arrow-up-fill me-1"></i>Amazon API Gateway, S3 & CloudWatch</div>
+                            <div><strong>API Gateway URL:</strong> <code>${gw.invoke_url}</code></div>
+                            <div><strong>Política Throttling:</strong> <span class="badge bg-warning text-dark">${gw.rate_limit_objetivo}</span></div>
+                            <div><strong>Bucket Amazon S3:</strong> <code>${s3.bucket}</code> (${s3.cifrado_en_reposo})</div>
+                            <div><strong>Block Public Access:</strong> <span class="badge bg-dark">${s3.block_public_access}</span></div>
+                            <div><strong>Alarma CloudWatch + SNS:</strong> <code>${cw.alarma_configurada}</code> &rarr; <code>${cw.notificacion_sns}</code></div>
+                            <div><strong>Respaldo Cada 7h:</strong> <code>${cw.automatizacion_7_horas}</code></div>
+                            <div><strong>Hasher Primario:</strong> <code>${sec.password_hasher}</code></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            box.innerHTML = `<div class="alert alert-danger mb-0">Error de conexión: ${err}</div>`;
+        }
+    }
+
+    async function ejecutarPruebaRateLimit(total = 8) {
+        const tbody = document.getElementById('tabla-ratelimit-resultados');
+        tbody.innerHTML = '';
+        const targetUrl = resolveApiUrl('/api/aws/rate-limit-test/');
+
+        for (let i = 1; i <= total; i++) {
+            const t0 = performance.now();
+            try {
+                const res = await fetch(targetUrl, { headers: { 'Accept': 'application/json' } });
+                const ms = Math.round(performance.now() - t0);
+                const data = await res.json().catch(() => ({}));
+                const es429 = res.status === 429;
+                const badge = es429
+                    ? `<span class="badge bg-danger">🔴 429 Too Many Requests</span>`
+                    : `<span class="badge bg-success">🟢 ${res.status} OK</span>`;
+                const msg = es429
+                    ? `<strong>BLOQUEADO POR RATE LIMIT (THROTTLING):</strong> ${data.detail || data.message || 'Límite de ráfaga superado'}`
+                    : (data.estado || 'Solicitud permitida');
+
+                tbody.innerHTML += `
+                    <tr class="${es429 ? 'table-danger' : 'table-success bg-opacity-10'}">
+                        <td class="fw-bold">#${i}</td>
+                        <td><code>${targetUrl}</code></td>
+                        <td>${badge}</td>
+                        <td>${ms} ms</td>
+                        <td>${msg}</td>
+                    </tr>
+                `;
+            } catch (e) {
+                tbody.innerHTML += `<tr><td>#${i}</td><td><code>${targetUrl}</code></td><td><span class="badge bg-secondary">Error</span></td><td>—</td><td>${e}</td></tr>`;
+            }
+        }
+    }
+
+    async function reiniciarRateLimit() {
+        await apiFetch('/api/aws/rate-limit-reset/', { method: 'POST' });
+        document.getElementById('tabla-ratelimit-resultados').innerHTML = `
+            <tr><td colspan="5" class="text-center text-success fw-semibold py-3">✅ Contador de ráfaga reiniciado. Listo para una nueva prueba de 8 solicitudes.</td></tr>
+        `;
+    }
+
+    async function generarUrlPrefirmadaS3() {
+        const key = encodeURIComponent(document.getElementById('s3-object-key').value.trim());
+        const exp = encodeURIComponent(document.getElementById('s3-expires').value.trim() || '900');
+        const box = document.getElementById('eva4-s3-result');
+        const res = await apiFetch(`/api/aws/s3-presigned-url/?key=${key}&expires=${exp}`);
+        if (!res.ok) return;
+        const d = await res.json();
+        box.innerHTML = `
+            <div class="p-3 bg-white border rounded">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-4"><strong>Bucket S3:</strong> <code>${d.bucket_name}</code></div>
+                    <div class="col-md-4"><strong>Cifrado en Reposo:</strong> <span class="badge bg-success">${d.cifrado_en_reposo}</span></div>
+                    <div class="col-md-4"><strong>Block Public Access:</strong> <span class="badge bg-danger">ACTIVO (403 directo)</span></div>
+                </div>
+                <div class="mb-2"><strong>Acceso Público Directo (Bloqueado):</strong> <code>${d.acceso_directo_publico_bloqueado}</code></div>
+                <div class="mb-1"><strong>URL Prefirmada Generada (${d.algoritmo_firma}, expira en ${d.expiracion_segundos}s):</strong></div>
+                <div class="p-2 bg-light border rounded text-break font-monospace" style="font-size:0.78rem;">${d.presigned_url}</div>
+            </div>
+        `;
+    }
+
+    async function cargarEvidenciasCriptografia() {
+        const box = document.getElementById('eva4-crypto-content');
+        const res = await apiFetch('/api/auth/verificar-hash/');
+        if (!res.ok) return;
+        const d = await res.json();
+        const reg = d.registro_real_postgresql;
+        const des = reg ? reg.desglose_criptografico : d.demostracion_salt_unico.hash_ejecucion_1;
+        const demo = d.demostracion_salt_unico;
+
+        box.innerHTML = `
+            <div class="p-3 bg-white border rounded mb-2">
+                <div class="fw-bold text-dark mb-2">1. Registro Real Almacenado en PostgreSQL (Tabla <code>${reg ? reg.tabla_postgresql : 'users_customuser'}</code>, Usuario: <code>${reg ? reg.username : 'admin'}</code>)</div>
+                <div class="row g-2 mb-2">
+                    <div class="col-md-3"><strong>Algoritmo:</strong> <code>${des.algoritmo}</code></div>
+                    <div class="col-md-3"><strong>Iteraciones:</strong> <code>${des.iteraciones}</code></div>
+                    <div class="col-md-3"><strong>Salt Único:</strong> <code>${des.salt}</code></div>
+                    <div class="col-md-3"><strong>Texto Plano en BD:</strong> <span class="badge bg-success">NO (False)</span></div>
+                </div>
+                <div><strong>Cadena Hash Completa en PostgreSQL:</strong> <code class="text-break">${des.hash_completo_bd}</code></div>
+            </div>
+            <div class="p-3 bg-white border rounded">
+                <div class="fw-bold text-dark mb-1">2. Demostración de Salt Aleatorio (Misma contraseña &rarr; Dos hashes distintos)</div>
+                <div class="text-muted mb-2">${demo.explicacion}</div>
+                <div class="mb-1"><strong>Ejecución 1 (Salt <code>${demo.hash_ejecucion_1.salt}</code>):</strong> <code class="text-break">${demo.hash_ejecucion_1.hash_completo_bd}</code></div>
+                <div><strong>Ejecución 2 (Salt <code>${demo.hash_ejecucion_2.salt}</code>):</strong> <code class="text-break">${demo.hash_ejecucion_2.hash_completo_bd}</code></div>
+            </div>
+        `;
     }
 </script>
 </body>

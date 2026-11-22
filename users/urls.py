@@ -1,4 +1,4 @@
-"""Rutas de autenticación, cambio seguro de contraseña y gestión de sesiones."""
+"""Rutas de autenticación, cambio seguro de contraseña, sesiones y verificación criptográfica (EVA 4)."""
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
@@ -7,6 +7,7 @@ from .views import (
     PerfilActualView,
     CambiarPasswordView,
     RegistroUsuarioView,
+    VerificarCriptografiaPasswordView,
 )
 
 urlpatterns = [
@@ -16,4 +17,5 @@ urlpatterns = [
     path('perfil/', PerfilActualView.as_view(), name='auth-perfil'),
     path('cambiar-password/', CambiarPasswordView.as_view(), name='auth-cambiar-password'),
     path('registro/', RegistroUsuarioView.as_view(), name='auth-registro'),
+    path('verificar-hash/', VerificarCriptografiaPasswordView.as_view(), name='auth-verificar-hash'),
 ]

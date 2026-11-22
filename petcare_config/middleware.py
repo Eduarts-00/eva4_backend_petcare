@@ -1,9 +1,69 @@
 """
-Middleware de enrutamiento seguro para PetCare.
-Redirige cualquier URL web inexistente (404 fuera de /api/ y /static/) hacia la portada principal ('/'),
-evitando exponer rutas internas o pantallas de error al usuario final.
+Middlewares de seguridad (OWASP ZAP DAST Hardening), soporte CORS para
+Arquitectura Distribuida AWS (EC2 Frontend + API Gateway + EC2 Backend DRF)
+y enrutamiento seguro para PetCare (Evaluación N.º 4).
 """
+from django.http import HttpResponse
 from django.shortcuts import redirect
+
+
+class SecurityHeadersAndCORSMiddleware:
+    """
+    1. Aplica cabeceras de seguridad HTTP recomendadas por OWASP ZAP (DAST):
+       - Content-Security-Policy (CSP)
+       - X-Content-Type-Options: nosniff
+       - X-Frame-Options: DENY
+       - Referrer-Policy: strict-origin-when-cross-origin
+       - Permissions-Policy
+       - Cache-Control restrictivo en endpoints de autenticación JWT
+    2. Habilita CORS para permitir la integración desacoplada entre EC2 Frontend,
+       Amazon API Gateway y EC2 Backend DRF utilizando tokens JWT.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        origin = request.headers.get('Origin', '*')
+
+        if request.method == 'OPTIONS' and request.path.startswith('/api/'):
+            response = HttpResponse(status=204)
+        else:
+            response = self.get_response(request)
+
+        # Cabeceras CORS para integración EC2 Frontend <-> API Gateway <-> EC2 Backend
+        if request.path.startswith('/api/'):
+            response['Access-Control-Allow-Origin'] = origin if origin != 'null' else '*'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            response['Access-Control-Allow-Headers'] = (
+                'Accept, Authorization, Content-Type, X-CSRFToken, X-Requested-With'
+            )
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Max-Age'] = '86400'
+
+        # Cabeceras de endurecimiento DAST (OWASP ZAP Baseline Compliance)
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['X-Frame-Options'] = 'DENY'
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=()'
+        response['Cross-Origin-Opener-Policy'] = 'same-origin'
+
+        if 'Content-Security-Policy' not in response:
+            response['Content-Security-Policy'] = (
+                "default-src 'self' https://cdn.jsdelivr.net; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                "font-src 'self' https://cdn.jsdelivr.net data:; "
+                "img-src 'self' data: https: blob:; "
+                "connect-src 'self' https: http:; "
+                "frame-ancestors 'none';"
+            )
+
+        if request.path.startswith('/api/auth/'):
+            response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+            response['Pragma'] = 'no-cache'
+
+        return response
 
 
 class RedirectUnknownRoutesMiddleware:
