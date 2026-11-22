@@ -11,14 +11,18 @@
 
 ## 🌐 Enlaces de Producción y Arquitectura AWS
 
-- **Portal Web Frontend / Backend Integrado (HTTPS):** `https://petcaree.duckdns.org/`
+- **Instancia 2 — EC2 Frontend Desacoplado (HTTP):** `http://3.230.130.63/`
+- **Amazon API Gateway (Rate Limit: 2 req/s, Burst: 5):** `https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod`
+- **Instancia 1 — EC2 Backend DRF (HTTPS):** `https://petcaree.duckdns.org/` (`98.85.49.169`)
+- **Amazon RDS PostgreSQL 18.3 (TLS + KMS):** `petcare-rds-postgres.cdsudpkituru.us-east-1.rds.amazonaws.com:5432`
+- **Amazon S3 Bucket (SSE-S3 + Block Public Access):** `petcare-eva4-static-media-2026-047602603714-us-east-1-an`
 - **Centro Interactivo AWS & Seguridad (EVA 4):** Botón **`🛡️ AWS & Seguridad (EVA 4)`** en la barra superior del portal.
 - **Panel Django Admin (Sesión Unificada RBAC):** `https://petcaree.duckdns.org/admin/`
 - **Documentación Interactiva OpenAPI / Swagger:** `https://petcaree.duckdns.org/api/docs/`
-- **Telemetría de Arquitectura AWS en Vivo (JSON):** `https://petcaree.duckdns.org/api/aws/estado/`
-- **Verificación Criptográfica PBKDF2 y Salt (JSON):** `https://petcaree.duckdns.org/api/auth/verificar-hash/`
-- **Generador de URLs Prefirmadas S3 SigV4 (JSON):** `https://petcaree.duckdns.org/api/aws/s3-presigned-url/`
-- **Endpoint de Prueba de Rate Limiting / Throttling:** `https://petcaree.duckdns.org/api/aws/rate-limit-test/`
+- **Telemetría de Arquitectura AWS en Vivo (vía API Gateway):** `https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod/api/aws/estado/`
+- **Verificación Criptográfica PBKDF2 y Salt (vía API Gateway):** `https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod/api/auth/verificar-hash/`
+- **Generador de URLs Prefirmadas S3 SigV4 (vía API Gateway):** `https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod/api/aws/s3-presigned-url/`
+- **Endpoint de Prueba de Rate Limiting / Throttling (vía API Gateway):** `https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod/api/aws/rate-limit-test/`
 
 ---
 
