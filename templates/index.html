@@ -452,7 +452,7 @@
                 <p class="mb-0 small opacity-90" id="role-subtitle"></p>
             </div>
             <div id="admin-quick-box" style="display:none;">
-                <a href="/admin/" class="btn btn-warning fw-bold shadow-sm">
+                <a id="btn-quick-admin" href="/admin/" class="btn btn-warning fw-bold shadow-sm">
                     <i class="bi bi-database-fill-gear me-1"></i> Ir al Motor Django Admin (Sesión Activa)
                 </a>
             </div>
@@ -1478,6 +1478,11 @@
         const esStaff = esAdmin || rol === 'VETERINARIO';
 
         document.getElementById('user-badge-text').innerText = `👤 ${currentUser.nombre_completo} • ${currentUser.rol_display}`;
+        const backendRoot = apiBaseUrl || '';
+        document.getElementById('nav-admin-django').href = `${backendRoot}/admin/`;
+        document.getElementById('nav-swagger-btn').href = `${backendRoot}/api/docs/`;
+        const quickAdm = document.getElementById('btn-quick-admin');
+        if (quickAdm) quickAdm.href = `${backendRoot}/admin/`;
         document.getElementById('nav-admin-django').style.display = esAdmin ? 'inline-block' : 'none';
         document.getElementById('nav-swagger-btn').style.display = esStaff ? 'inline-block' : 'none';
         document.getElementById('admin-quick-box').style.display = esAdmin ? 'block' : 'none';
