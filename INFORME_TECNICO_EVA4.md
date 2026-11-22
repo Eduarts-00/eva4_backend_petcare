@@ -6,7 +6,11 @@
 - **Docente:** Marcelo Alvarado Aravena
 - **Institución:** INACAP — Año 2026
 - **Repositorio GitHub EVA 4:** `https://github.com/Eduarts-00/eva4_backend_petcare.git`
-- **URL Despliegue AWS:** `https://petcaree.duckdns.org/`
+- **URL EC2 Frontend Desacoplado (`eva4_petcare_FRONTEND`):** `http://3.230.130.63/`
+- **URL Amazon API Gateway (`Rate Limit: 2 req/s, Burst: 5`):** `https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod`
+- **URL EC2 Backend DRF (`eva3_petcare`):** `https://petcaree.duckdns.org/` (`98.85.49.169`)
+- **Endpoint Amazon RDS PostgreSQL 18.3:** `petcare-rds-postgres.cdsudpkituru.us-east-1.rds.amazonaws.com:5432`
+- **Bucket Amazon S3 (`SSE-S3` + `Block Public Access`):** `petcare-eva4-static-media-2026-047602603714-us-east-1-an`
 
 ---
 
