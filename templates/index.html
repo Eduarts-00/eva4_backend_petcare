@@ -1303,7 +1303,8 @@
 <script>
     let accessToken = localStorage.getItem('petcare_access');
     let currentUser = JSON.parse(localStorage.getItem('petcare_user') || 'null');
-    let apiBaseUrl = (localStorage.getItem('petcare_api_base_url') || '').replace(/\/+$/, '');
+    const isSeparateFrontendHost = !['petcaree.duckdns.org', '98.85.49.169', 'localhost', '127.0.0.1'].includes(window.location.hostname);
+    let apiBaseUrl = (localStorage.getItem('petcare_api_base_url') || (isSeparateFrontendHost ? 'https://petcaree.duckdns.org' : '')).replace(/\/+$/, '');
     let passwordUsadaEnLogin = '';
     let cacheTutores = [];
     let cacheMascotas = [];
@@ -1371,7 +1372,7 @@
 
     async function cargarResumenKPI() {
         try {
-            const res = await fetch('/api/dashboard/resumen/');
+            const res = await apiFetch('/api/dashboard/resumen/');
             if (!res.ok) return;
             const d = await res.json();
             document.getElementById('kpi-mascotas').innerText = d.total_mascotas;

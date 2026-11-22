@@ -16,15 +16,12 @@ echo "  Conectada a API Backend / API Gateway: $BACKEND_OR_APIGW_URL"
 echo "=================================================================="
 
 apt-get update -y -q
-apt-get install -y -q nginx git curl
+DEBIAN_FRONTEND=noninteractive apt-get install -y -q nginx git curl
 
 FRONTEND_DIR="/var/www/petcare_frontend"
 mkdir -p "$FRONTEND_DIR"
 
 curl -sSL https://raw.githubusercontent.com/Eduarts-00/eva4_backend_petcare/main/templates/index.html -o "$FRONTEND_DIR/index.html"
-
-# Configurar por defecto la URL remota del Backend / API Gateway en el Frontend desacoplado
-sed -i "s|localStorage.getItem('petcare_api_base_url') || ''|localStorage.getItem('petcare_api_base_url') || '${BACKEND_OR_APIGW_URL}'|g" "$FRONTEND_DIR/index.html"
 
 cat >/etc/nginx/sites-available/petcare_frontend <<EOF
 server {

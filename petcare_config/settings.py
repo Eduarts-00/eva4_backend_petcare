@@ -44,6 +44,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'https://petcaree.duckdns.org',
+    'http://3.230.130.63',
 ]
 if os.environ.get('EC2_PUBLIC_IP'):
     CSRF_TRUSTED_ORIGINS.extend([
@@ -172,7 +173,10 @@ USE_TZ = True
 # ==============================================================================
 # ACTIVIDAD 6: Seguridad del Bucket Amazon S3 (SSE-S3 / SSE-KMS + Block Public Access + URLs Prefirmadas)
 # ==============================================================================
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', 'petcare-eva4-static-media-2026')
+AWS_STORAGE_BUCKET_NAME = os.environ.get(
+    'AWS_STORAGE_BUCKET_NAME',
+    'petcare-eva4-static-media-2026-047602603714-us-east-1-an'
+)
 AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')
 AWS_S3_ENCRYPTION_MODE = os.environ.get('AWS_S3_ENCRYPTION_MODE', 'AES256')  # AES256 (SSE-S3) o aws:kms (SSE-KMS)
 AWS_DEFAULT_ACL = None  # Respeta Block Public Access activado en el bucket S3
@@ -253,7 +257,7 @@ SIMPLE_JWT = {
 
 # Configuración de URLs de arquitectura distribuida AWS para diagnóstico y evidencias
 AWS_ARCHITECTURE_CONFIG = {
-    'EC2_FRONTEND_URL': os.environ.get('EC2_FRONTEND_URL', 'https://petcaree.duckdns.org/'),
+    'EC2_FRONTEND_URL': os.environ.get('EC2_FRONTEND_URL', 'http://3.230.130.63/'),
     'EC2_BACKEND_URL': os.environ.get('EC2_BACKEND_URL', 'https://petcaree.duckdns.org/api/'),
     'API_GATEWAY_URL': os.environ.get(
         'API_GATEWAY_URL',
