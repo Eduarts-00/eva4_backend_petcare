@@ -63,7 +63,16 @@ echo "[3/5] Aplicando migraciones, recolectando estáticos y poblando datos..."
 "$VENV_DIR/bin/python" "$APP_DIR/manage.py" collectstatic --noinput
 "$VENV_DIR/bin/python" "$APP_DIR/poblar_datos.py"
 
-echo "[4/5] Ajustando permisos y reiniciando servicios Gunicorn y Nginx..."
+echo "[4/5] Configurando variables de entorno AWS (RDS, S3, API Gateway) y reiniciando Gunicorn y Nginx..."
+if [ -f "$APP_DIR/aws_infra/conectar_rds_s3_backend.sh" ]; then
+    bash "$APP_DIR/aws_infra/conectar_rds_s3_backend.sh" \
+        "petcare-rds-postgres.cdsudpkituru.us-east-1.rds.amazonaws.com" \
+        "postgres" \
+        "inacap.2030" \
+        "petcare-eva4-static-media-2026-047602603714-us-east-1-an" \
+        "https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod" || true
+fi
+
 chown -R ubuntu:www-data "$APP_DIR" || true
 chmod -R 755 "$APP_DIR" || true
 
