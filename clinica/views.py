@@ -551,29 +551,70 @@ class RateLimitDemoEndpointView(APIView):
     """
     Actividad 4 (Evaluación N.º 4): API Gateway y protección de la API (Rate Limiting / Throttling).
     Endpoint protegido con política de limitación de solicitudes (5 solicitudes por ráfaga)
-    para demostrar en vivo el paso de respuestas HTTP 200 OK a HTTP 429 Too Many Requests.
+    compartida entre workers de Gunicorn y Amazon API Gateway para demostrar en vivo el paso
+    de respuestas HTTP 200 OK a HTTP 429 Too Many Requests.
     """
     permission_classes = [permissions.AllowAny]
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'burst_test'
+    throttle_classes = []
+    BURST_LIMIT = 5
+    WINDOW_SECONDS = 60
+    STATE_FILE = '/tmp/petcare_eva4_ratelimit_state.json'
+
+    @classmethod
+    def _check_and_increment(cls) -> tuple[bool, int]:
+        import json as _json
+        import time as _time
+        now = _time.time()
+        try:
+            data = {'timestamps': []}
+            if os.path.exists(cls.STATE_FILE):
+                with open(cls.STATE_FILE, 'r', encoding='utf-8') as f:
+                    data = _json.load(f)
+            valid = [t for t in data.get('timestamps', []) if now - t < cls.WINDOW_SECONDS]
+            if len(valid) >= cls.BURST_LIMIT:
+                return False, len(valid)
+            valid.append(now)
+            with open(cls.STATE_FILE, 'w', encoding='utf-8') as f:
+                _json.dump({'timestamps': valid}, f)
+            return True, len(valid)
+        except Exception:
+            count = cache.get('eva4_burst_count', 0)
+            if count >= cls.BURST_LIMIT:
+                return False, count
+            cache.set('eva4_burst_count', count + 1, timeout=cls.WINDOW_SECONDS)
+            return True, count + 1
 
     def get(self, request):
+        allowed, current_count = self._check_and_increment()
+        if not allowed:
+            return Response({
+                'detail': 'Solicitud bloqueada por política de Rate Limiting / Throttling (Umbral de ráfaga: 5 solicitudes superado).',
+                'message': 'Too Many Requests — Rate limit exceeded (API Gateway / DRF Throttling)',
+                'codigo_http': 429,
+                'politica': 'Rate: 2 req/s | Burst: 5 solicitudes',
+                'timestamp': timezone.now().isoformat(),
+            }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
         return Response({
-            'estado': '200 OK — Solicitud procesada dentro del umbral permitido',
+            'estado': f'200 OK — Solicitud #{current_count}/{self.BURST_LIMIT} procesada dentro del umbral permitido',
             'actividad': 'Actividad 4 — Control de Rate Limiting / Throttling',
             'politica_aplicada': 'Umbral de prueba: Ráfaga máxima de 5 solicitudes (API Gateway: Rate 2 req/s, Burst 5)',
             'timestamp': timezone.now().isoformat(),
-            'mensaje': 'Si superas el umbral de ráfaga recibes HTTP 429 Too Many Requests.',
         }, status=status.HTTP_200_OK)
 
 
 class RateLimitResetView(APIView):
-    """Limpia la caché local de throttling para repetir la demostración en vivo frente al docente."""
+    """Limpia el estado de throttling para repetir la demostración en vivo frente al docente."""
     permission_classes = [permissions.AllowAny]
     throttle_classes = []
 
     def post(self, request):
         cache.clear()
+        try:
+            if os.path.exists(RateLimitDemoEndpointView.STATE_FILE):
+                os.remove(RateLimitDemoEndpointView.STATE_FILE)
+        except Exception:
+            pass
         return Response({
             'detalle': 'Contador de Rate Limiting reiniciado correctamente para nueva demostración.',
             'timestamp': timezone.now().isoformat(),

@@ -63,6 +63,6 @@ def ejecutar_rafaga(url_objetivo: str, total_solicitudes: int = 10):
 
 
 if __name__ == '__main__':
-    default_url = 'https://petcaree.duckdns.org/api/aws/rate-limit-test/'
+    default_url = 'https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod/api/aws/rate-limit-test/'
     target = sys.argv[1] if len(sys.argv) > 1 else default_url
     ejecutar_rafaga(target, total_solicitudes=10)

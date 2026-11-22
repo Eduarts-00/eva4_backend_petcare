@@ -261,7 +261,7 @@ AWS_ARCHITECTURE_CONFIG = {
     'EC2_BACKEND_URL': os.environ.get('EC2_BACKEND_URL', 'https://petcaree.duckdns.org/api/'),
     'API_GATEWAY_URL': os.environ.get(
         'API_GATEWAY_URL',
-        'https://petcare-api-gw.execute-api.us-east-1.amazonaws.com/prod'
+        'https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod'
     ),
     'API_GATEWAY_TYPE': os.environ.get('API_GATEWAY_TYPE', 'REST API / HTTP API con Stage Throttling (Rate: 2 req/s, Burst: 5)'),
     'RDS_ENDPOINT': DB_HOST,

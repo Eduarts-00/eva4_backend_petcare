@@ -9,21 +9,28 @@ from django.shortcuts import redirect
 
 class SecurityHeadersAndCORSMiddleware:
     """
-    1. Aplica cabeceras de seguridad HTTP recomendadas por OWASP ZAP (DAST):
+    1. Normaliza rutas /api/... provenientes de Amazon API Gateway ({proxy+} remueve el slash final)
+       para evitar redirecciones 301/302 fuera del stage /prod de API Gateway.
+    2. Aplica cabeceras de seguridad HTTP recomendadas por OWASP ZAP (DAST):
        - Content-Security-Policy (CSP)
        - X-Content-Type-Options: nosniff
        - X-Frame-Options: DENY
        - Referrer-Policy: strict-origin-when-cross-origin
        - Permissions-Policy
        - Cache-Control restrictivo en endpoints de autenticación JWT
-    2. Habilita CORS para permitir la integración desacoplada entre EC2 Frontend,
-       Amazon API Gateway y EC2 Backend DRF utilizando tokens JWT.
+    3. Habilita CORS para permitir la integración desacoplada entre EC2 Frontend (3.230.130.63),
+       Amazon API Gateway (ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod) y EC2 Backend DRF.
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        # Normalizar slash final cuando Amazon API Gateway reenvía /{proxy} sin '/' al final
+        if request.path.startswith('/api/') and not request.path.endswith('/'):
+            request.path = request.path + '/'
+            request.path_info = request.path_info + '/'
+
         origin = request.headers.get('Origin', '*')
 
         if request.method == 'OPTIONS' and request.path.startswith('/api/'):
