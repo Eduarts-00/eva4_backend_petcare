@@ -8,11 +8,11 @@
 # ==============================================================================
 set -e
 
-RDS_HOST="${1:-localhost}"
+RDS_HOST="${1:-petcare-rds-postgres.cdsudpkituru.us-east-1.rds.amazonaws.com}"
 RDS_USER="${2:-postgres}"
 RDS_PASS="${3:-inacap.2030}"
-S3_BUCKET="${4:-petcare-eva4-static-media-2026}"
-APIGW_URL="${5:-https://petcaree.duckdns.org}"
+S3_BUCKET="${4:-petcare-eva4-static-media-2026-047602603714-us-east-1-an}"
+APIGW_URL="${5:-https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod}"
 
 echo "=================================================================="
 echo "  VINCULANDO EC2 BACKEND CON AMAZON RDS, S3 Y API GATEWAY"
