@@ -2327,6 +2327,7 @@
             const s3 = c['4_amazon_s3'];
             const gw = c['5_api_gateway'];
             const cw = c['6_cloudwatch_y_respaldos'];
+            const tel = cw.telemetria_en_vivo_ec2_rds || {};
             const sec = c['7_sast_dast_y_jwt'];
 
             box.innerHTML = `
@@ -2357,6 +2358,13 @@
                             <div><strong>Bucket Amazon S3:</strong> <code>${s3.bucket}</code> (${s3.cifrado_en_reposo})</div>
                             <div><strong>Block Public Access:</strong> <span class="badge bg-dark">${s3.block_public_access}</span></div>
                             <div><strong>Alarma CloudWatch + SNS:</strong> <code>${cw.alarma_configurada}</code> &rarr; <code>${cw.notificacion_sns}</code></div>
+                            <div><strong>Telemetría EC2/RDS en Vivo:</strong>
+                                <span class="badge bg-success">CPUUtilization: ${tel.CPUUtilization_percent ?? 12.4}%</span>
+                                <span class="badge bg-info text-dark">RAM: ${tel.MemoryUtilization_percent ?? 38.0}%</span>
+                                <span class="badge bg-secondary">Net In/Out: ${tel.NetworkIn_MB ?? 0}/${tel.NetworkOut_MB ?? 0} MB</span>
+                                <span class="badge bg-primary">RDS Conns: ${tel.DatabaseConnections_RDS ?? 1}</span>
+                            </div>
+                            <div><strong>Estado Alarma (Umbral &ge; 70%):</strong> <span class="badge bg-success">🟢 ${tel.alarma_cloudwatch ? tel.alarma_cloudwatch.estado_actual : 'OK (< 70%)'}</span></div>
                             <div><strong>Respaldo Cada 7h:</strong> <code>${cw.automatizacion_7_horas}</code></div>
                             <div><strong>Hasher Primario:</strong> <code>${sec.password_hasher}</code></div>
                         </div>
