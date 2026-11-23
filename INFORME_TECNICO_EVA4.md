@@ -15,6 +15,37 @@
 
 ---
 
+## 0. Índice de Evidencias Numeradas (Capturas Reales de Infraestructura AWS)
+
+| N.º | Evidencia / Criterio | Archivo en Repositorio |
+| :--- | :--- | :--- |
+| **Evidencia 01** | Diagrama de Arquitectura Distribuida AWS implementada | [`evidencias_aws/evidencia_01_arquitectura_aws.jpg`](./evidencias_aws/evidencia_01_arquitectura_aws.jpg) |
+| **Evidencia 02** | Creación de instancia Amazon RDS PostgreSQL (`db.t4g.micro`) | [`evidencias_aws/evidencia_02_rds_creacion.jpg`](./evidencias_aws/evidencia_02_rds_creacion.jpg) |
+| **Evidencia 03** | Verificación de Cifrado KMS, Puerto `5432` y Respaldos Automáticos en RDS | [`evidencias_aws/evidencia_03_rds_cifrado_kms_y_backups.png`](./evidencias_aws/evidencia_03_rds_cifrado_kms_y_backups.png) |
+| **Evidencia 08** | Configuración de Alarma `CPUUtilization` en Amazon CloudWatch (`i-0987fd370228da4bc`) | [`evidencias_aws/evidencia_08_cloudwatch_alarma_cpu.png`](./evidencias_aws/evidencia_08_cloudwatch_alarma_cpu.png) |
+| **Evidencia 09** | Creación de Función AWS Lambda `PetCare-RDS-Backup-7h` (Python 3.12 + `LabRole`) | [`evidencias_aws/evidencia_09_lambda_config_iam.jpg`](./evidencias_aws/evidencia_09_lambda_config_iam.jpg) |
+| **Evidencia 10** | Diagrama de Función AWS Lambda conectada a Amazon EventBridge (`rate(7 hours)`) | [`evidencias_aws/evidencia_10_lambda_eventbridge_7h.png`](./evidencias_aws/evidencia_10_lambda_eventbridge_7h.png) |
+| **Evidencia 11** | Snapshots de RDS PostgreSQL 18.3 creados por la Lambda cada 7h (`Disponibles`) | [`evidencias_aws/evidencia_11_rds_snapshots_7h_disponibles.png`](./evidencias_aws/evidencia_11_rds_snapshots_7h_disponibles.png) |
+
+### Galería Visual de Evidencias AWS
+
+#### Evidencia 01 — Arquitectura Distribuida AWS
+![Evidencia 01](./evidencias_aws/evidencia_01_arquitectura_aws.jpg)
+
+#### Evidencia 02 y 03 — Amazon RDS PostgreSQL 18.3 (Cifrado KMS, Puerto 5432 y Respaldos Automáticos)
+![Evidencia 02](./evidencias_aws/evidencia_02_rds_creacion.jpg)
+![Evidencia 03](./evidencias_aws/evidencia_03_rds_cifrado_kms_y_backups.png)
+
+#### Evidencia 08 — Alarma de Monitoreo en Amazon CloudWatch (`CPUUtilization`)
+![Evidencia 08](./evidencias_aws/evidencia_08_cloudwatch_alarma_cpu.png)
+
+#### Evidencia 09, 10 y 11 — Automatización Serverless de Respaldos cada 7 Horas (`EventBridge` + `AWS Lambda` + Snapshots RDS Disponibles)
+![Evidencia 09](./evidencias_aws/evidencia_09_lambda_config_iam.jpg)
+![Evidencia 10](./evidencias_aws/evidencia_10_lambda_eventbridge_7h.png)
+![Evidencia 11](./evidencias_aws/evidencia_11_rds_snapshots_7h_disponibles.png)
+
+---
+
 ## 1. Arquitectura Distribuida en AWS (Sección 3)
 
 La arquitectura de **PetCare EVA 4** separa explícitamente las capas de **presentación (EC2 Frontend)**, **control de tráfico API (Amazon API Gateway)**, **procesamiento de negocio (EC2 Backend Django REST Framework)**, **persistencia relacional (Amazon RDS PostgreSQL)**, **almacenamiento de objetos y estáticos (Amazon S3)** y **observabilidad/recuperación (Amazon CloudWatch + Amazon SNS + EventBridge + AWS Lambda)**.
