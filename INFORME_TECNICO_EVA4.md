@@ -11,6 +11,7 @@
 - **URL EC2 Backend DRF (`eva3_petcare`):** `https://petcaree.duckdns.org/` (`98.85.49.169`)
 - **Endpoint Amazon RDS PostgreSQL 18.3:** `petcare-rds-postgres.cdsudpkituru.us-east-1.rds.amazonaws.com:5432`
 - **Bucket Amazon S3 (`SSE-S3` + `Block Public Access`):** `petcare-eva4-static-media-2026-047602603714-us-east-1-an`
+- **ARN Función AWS Lambda (Respaldo cada 7h):** `arn:aws:lambda:us-east-1:047602603714:function:PetCare-RDS-Backup-7h`
 
 ---
 

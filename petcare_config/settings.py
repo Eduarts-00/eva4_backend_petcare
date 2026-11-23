@@ -270,7 +270,7 @@ AWS_ARCHITECTURE_CONFIG = {
     'S3_ENCRYPTION': AWS_S3_ENCRYPTION_MODE,
     'CLOUDWATCH_ALARM_NAME': os.environ.get('CLOUDWATCH_ALARM_NAME', 'PetCare-EC2-High-CPU-Alarm'),
     'SNS_TOPIC_NAME': os.environ.get('SNS_TOPIC_NAME', 'PetCare-CloudWatch-Alerts-SNS'),
-    'BACKUP_LAMBDA_SCHEDULE': 'rate(7 hours) — Amazon EventBridge Scheduler + AWS Lambda + SNS',
+    'BACKUP_LAMBDA_SCHEDULE': 'rate(7 hours) — arn:aws:lambda:us-east-1:047602603714:function:PetCare-RDS-Backup-7h',
 }
 
 # ==============================================================================
