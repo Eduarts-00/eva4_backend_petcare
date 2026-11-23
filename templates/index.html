@@ -2368,10 +2368,13 @@
         }
     }
 
+    const DEFAULT_APIGW_URL = 'https://ozp0ipskkf.execute-api.us-east-1.amazonaws.com/prod';
+
     async function ejecutarPruebaRateLimit(total = 8) {
         const tbody = document.getElementById('tabla-ratelimit-resultados');
         tbody.innerHTML = '';
-        const targetUrl = resolveApiUrl('/api/aws/rate-limit-test/');
+        const baseForRateLimit = apiBaseUrl || DEFAULT_APIGW_URL;
+        const targetUrl = `${baseForRateLimit}/api/aws/rate-limit-test/`;
 
         for (let i = 1; i <= total; i++) {
             const t0 = performance.now();
@@ -2403,9 +2406,11 @@
     }
 
     async function reiniciarRateLimit() {
-        await apiFetch('/api/aws/rate-limit-reset/', { method: 'POST' });
+        const baseForRateLimit = apiBaseUrl || DEFAULT_APIGW_URL;
+        await fetch(`${baseForRateLimit}/api/aws/rate-limit-reset/`, { method: 'POST' }).catch(() => {});
+        await apiFetch('/api/aws/rate-limit-reset/', { method: 'POST' }).catch(() => {});
         document.getElementById('tabla-ratelimit-resultados').innerHTML = `
-            <tr><td colspan="5" class="text-center text-success fw-semibold py-3">✅ Contador de ráfaga reiniciado. Listo para una nueva prueba de 8 solicitudes.</td></tr>
+            <tr><td colspan="5" class="text-center text-success fw-semibold py-3">✅ Contador de ráfaga en API Gateway (${baseForRateLimit}) reiniciado. Listo para una nueva prueba de 8 solicitudes.</td></tr>
         `;
     }
 
